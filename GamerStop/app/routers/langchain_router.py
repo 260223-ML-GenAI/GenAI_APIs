@@ -40,5 +40,5 @@ async def summarize():
     # Our first look at RAG -
     # the data we got from the .txt file will help the LLM generate its response
     # Invoke the same basic chain, this time the query will go straight into it
-    return basic_chain.invoke(input={"input": f"Summarize this text: {text}"})
+    return basic_chain.invoke(input={f"Summarize this text: {text}"})
 
