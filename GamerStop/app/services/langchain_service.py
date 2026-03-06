@@ -28,5 +28,12 @@ prompt = ChatPromptTemplate.from_messages([
 
 # First basic chain
 def get_basic_chain():
+
+    # This is a basic chain - it consists of:
+        # a prompt
+        # an LLM that will use that prompt to answer user queries
+    # This pipe-based syntax is LCEL (LangChain Expression Language)
     chain = prompt | llm
+
+    # This chain will get invoked by endpoints in our router!
     return chain
