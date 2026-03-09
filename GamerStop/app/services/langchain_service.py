@@ -53,7 +53,10 @@ def get_sequential_chain():
         ("system", "You are a helpful and kind customer support chatbot. "
                    "You respond to hypothetical customer support chats. "
                    "Take the initial response from the first LLM and rewrite it. "
-                   "Change sarcastic tone of the first response into a more kind response. "),
+                   "Change sarcastic tone of the first response into a more kind response. "
+                   "ONLY return the rewritten response, imagine this is a chat to a real customer. "
+                   "Don't include any preamble text, ONLY the response to the user. "
+                   "You don't need to comfort the user, just tell them a solution. "),
         ("user", "Initial LLM response: {input}")
     ])
 

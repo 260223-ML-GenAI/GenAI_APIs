@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from langchain_community.document_loaders import TextLoader
 from pydantic import BaseModel
 
-from app.services.langchain_service import get_basic_chain
+from app.services.langchain_service import get_basic_chain, get_sequential_chain
 
 # Router setup
 router = APIRouter(
@@ -17,6 +17,7 @@ class ChatRequest(BaseModel):
 
 # Import the different chains we'll invoke in our routes
 basic_chain = get_basic_chain()
+sequential_chain = get_sequential_chain()
 
 # General chat endpoint - no memory or fancy features
 @router.post("/chat")
@@ -41,3 +42,9 @@ async def summarize():
     # Invoke the same basic chain, this time the query will go straight into it
     return basic_chain.invoke(input={f"Summarize this text: {text}"})
 
+# INVOKING OUR SEQUENTIAL CHAIN
+@router.post("/support-chat")
+async def support_chat(chat:ChatRequest):
+
+    # Almost identical to the first chat endpoint. Just a different chain.
+    return sequential_chain.invoke(input=chat.input)
