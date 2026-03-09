@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from langchain_community.document_loaders import TextLoader
 from pydantic import BaseModel
 
-from app.services.langchain_service import get_basic_chain, get_sequential_chain
+from app.services.langchain_service import get_basic_chain, get_sequential_chain, get_transform_chain
 
 # Router setup
 router = APIRouter(
@@ -18,6 +18,7 @@ class ChatRequest(BaseModel):
 # Import the different chains we'll invoke in our routes
 basic_chain = get_basic_chain()
 sequential_chain = get_sequential_chain()
+transform_chain = get_transform_chain()
 
 # General chat endpoint - no memory or fancy features
 @router.post("/chat")
@@ -48,3 +49,8 @@ async def support_chat(chat:ChatRequest):
 
     # Almost identical to the first chat endpoint. Just a different chain.
     return sequential_chain.invoke(input=chat.input)
+
+# INVOKING OUR TRANSFORM CHAIN
+@router.post("/transform-chat")
+async def transform_chat(chat:ChatRequest):
+    return transform_chain.invoke(input=chat.input)

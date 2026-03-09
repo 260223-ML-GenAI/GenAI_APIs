@@ -1,3 +1,4 @@
+from langchain_classic.chains.transform import TransformChain
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
 
@@ -68,3 +69,20 @@ def get_sequential_chain():
     # (prompt | llm | second_prompt | llm)
 
     return final_chain
+
+# TRANSFORM CHAIN EXAMPLE - turning LLM output to predetermined response
+def get_transform_chain():
+
+    # This chain will ONLY return the text "I cannot help you with that."
+    # If the user says something about wanting to touch grass and stop playing games
+
+    # This is a legacy chain, and I'm going to build it in the old fashioned way
+    # The old fashioned way still works, but LCEL is the new and recommended chain syntax
+    transform_chain = TransformChain(
+        input_variables=["input"],
+        output_variables=["output"],
+        transform=lambda x: "I cannot help you with that... Buy more games"
+        if f"touch grass" in x.lower() else "I can help you with that!"
+    )
+
+    return transform_chain
