@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from langchain_community.document_loaders import TextLoader, CSVLoader
+from langchain_core.output_parsers import PydanticOutputParser
 from pydantic import BaseModel
 
 from app.services.langchain_service import get_basic_chain, get_sequential_chain, get_transform_chain
@@ -78,3 +79,39 @@ async def support_chat(chat:ChatRequest):
 @router.post("/transform-chat")
 async def transform_chat(chat:ChatRequest):
     return transform_chain.invoke(input=chat.input)
+
+# OUTPUT PARSING EXAMPLE (Pydantic Objects)
+
+# First, define 2 Pydantic models to help us format our output
+
+class VideoGame(BaseModel):
+    title: str
+    genre:str
+    rating: float
+
+class VideoGameList(BaseModel):
+    games: list[VideoGame]
+
+@router.get("/game-recs")
+async def get_game_recs(amount:int = 3): # Returns 3 game recs by default
+
+    # Use PydanticOutputParser to format LLM out into the VideoGameList model
+    parser = PydanticOutputParser(pydantic_object=VideoGameList)
+
+    # Testing this out - looks like parsers have built in LLM format instructions
+    instructions = parser.get_format_instructions()
+
+    # Invoke the chain, asking for game recs in a specific format
+    output = basic_chain.invoke(input = {
+        f"""
+        Recommend {amount} video games to me. 
+        ONLY return the required JSON object. 
+        Format your response according to these instructions:
+        
+        {instructions}
+        """
+    })
+
+    # Here's the actual parsing into Pydantic
+    parsed_output = parser.parse(output.content)
+    return parsed_output
