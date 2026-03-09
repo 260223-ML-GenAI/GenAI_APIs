@@ -93,7 +93,8 @@ class VideoGameList(BaseModel):
     games: list[VideoGame]
 
 @router.get("/game-recs")
-async def get_game_recs(amount:int = 3): # Returns 3 game recs by default
+# Returns 3 game recs by default
+async def get_game_recs(amount:int = 3, genre:str = "any"):
 
     # Use PydanticOutputParser to format LLM out into the VideoGameList model
     parser = PydanticOutputParser(pydantic_object=VideoGameList)
@@ -104,7 +105,7 @@ async def get_game_recs(amount:int = 3): # Returns 3 game recs by default
     # Invoke the chain, asking for game recs in a specific format
     output = basic_chain.invoke(input = {
         f"""
-        Recommend {amount} video games to me. 
+        Recommend {amount} video games to me in {genre} genre. 
         ONLY return the required JSON object. 
         Format your response according to these instructions:
         
