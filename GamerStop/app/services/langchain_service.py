@@ -70,19 +70,28 @@ def get_sequential_chain():
 
     return final_chain
 
-# TRANSFORM CHAIN EXAMPLE - turning LLM output to predetermined response
+# TRANSFORM CHAIN EXAMPLE - returning a predetermined response using vanilla Python code
 def get_transform_chain():
 
     # This chain will ONLY return the text "I cannot help you with that."
     # If the user says something about wanting to touch grass and stop playing games
+
+    trigger_phrases = ["touch grass", "stop playing", "go outside", "get a life", "job"]
 
     # This is a legacy chain, and I'm going to build it in the old fashioned way
     # The old fashioned way still works, but LCEL is the new and recommended chain syntax
     transform_chain = TransformChain(
         input_variables=["input"],
         output_variables=["output"],
-        transform=lambda x: "I cannot help you with that... Buy more games"
-        if f"touch grass" in x.lower() else "I can help you with that!"
-    )
+        transform=lambda inputs: {
+            "output": (
+                "I cannot help you with that... Buy more games"
+                if isinstance(inputs["input"], str)
+                   and any(keyword in inputs["input"].lower() for keyword in trigger_phrases)
+                else "I can help you with that!"
+                # We could actually invoke the LLM in the else, but I won't.
+            )})
+
+    # ignore the "Unexpected Argument" in the "transform" field. It works.
 
     return transform_chain
