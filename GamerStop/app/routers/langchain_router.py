@@ -18,7 +18,6 @@ class ChatRequest(BaseModel):
 # Import the different chains we'll invoke in our routes
 basic_chain = get_basic_chain()
 
-
 # General chat endpoint - no memory or fancy features
 @router.post("/chat")
 async def general_chat(chat:ChatRequest):
