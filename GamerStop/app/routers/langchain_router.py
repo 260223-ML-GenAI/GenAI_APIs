@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from langchain_community.document_loaders import TextLoader
+from langchain_community.document_loaders import TextLoader, CSVLoader
 from pydantic import BaseModel
 
 from app.services.langchain_service import get_basic_chain, get_sequential_chain, get_transform_chain
@@ -42,6 +42,30 @@ async def summarize():
     # the data we got from the .txt file will help the LLM generate its response
     # Invoke the same basic chain, this time the query will go straight into it
     return basic_chain.invoke(input={f"Summarize this text: {text}"})
+
+# ANOTHER DOCUMENT LOADER
+@router.post("/csv-analysis")
+async def csv_analysis(chat:ChatRequest):
+
+    # This time, we'll load in a CSV and let the user ask questions about it
+
+    # Load in the CSV file and extract it
+    loader = CSVLoader("app/video_games.csv")
+    data = loader.load()
+
+    # Convert the CSV content into a single string
+    csv_content = "\n".join(row.page_content for row in data)
+
+    # Invoke the LLM!
+    return basic_chain.invoke(input = {
+        f"""Answer the user's query with the provided video game data.
+        ONLY use the provided data to answer the question
+
+        User Query: {chat.input}
+        CSV Data: {csv_content}
+        """
+    })
+
 
 # INVOKING OUR SEQUENTIAL CHAIN
 @router.post("/support-chat")
