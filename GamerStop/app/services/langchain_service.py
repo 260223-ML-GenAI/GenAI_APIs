@@ -63,3 +63,5 @@ def get_sequential_chain():
     # Finally, build a sequential chain (take first LLM output and feed it to the second LLM)
     final_chain = first_chain | second_chain
     # (prompt | llm | second_prompt | llm)
+
+    return final_chain
