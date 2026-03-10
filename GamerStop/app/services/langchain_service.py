@@ -1,4 +1,6 @@
+from langchain_classic.chains.conversation.base import ConversationChain
 from langchain_classic.chains.transform import TransformChain
+from langchain_classic.memory import ConversationBufferWindowMemory
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
 
@@ -95,3 +97,40 @@ def get_transform_chain():
     # ignore the "Unexpected Argument" in the "transform" field. It works.
 
     return transform_chain
+
+# CHAIN WITH MEMORY
+def get_memory_chain():
+
+    # First, we'll set up the memory object to store convo history
+    #CBWM remembers the last "k" interactions
+    memory = ConversationBufferWindowMemory(k=3)
+
+    # Prompt, mostly the same but one small addition - {history} variable
+    # These older chains don't use LCEL and have opinionated variable names
+    memory_prompt = ChatPromptTemplate.from_messages([
+        ("system",
+          """
+          You are a helpful, snarky, and nerdy chat bot that answers questions about video games.
+          Imagine you're like a clerk at a video game store, and you're a know-it-all.
+          
+          You give brief but informative answers, and you are very opinionated.
+          You love to give recommendations and refer to critic reviews when answering questions.
+          
+          You only answer questions about games or gaming culture.
+          You don't provide further suggestions beyond what the user asks for.
+          """),
+        ("user",
+        """
+            Conversation History: {history}
+            Current User Input: {input}
+        """)
+    ])
+
+    # Make the chain! Old fashioned syntax, we will get deprecation warnings when we run
+    memory_chain = ConversationChain(
+        llm = llm,
+        prompt = memory_prompt,
+        memory = memory
+    )
+
+    return memory_chain
