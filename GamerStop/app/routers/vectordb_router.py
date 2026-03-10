@@ -1,3 +1,5 @@
+from typing import Any
+
 from fastapi import APIRouter
 from pydantic import BaseModel
 
@@ -12,7 +14,6 @@ router = APIRouter(
 class IngestItem(BaseModel):
     id: str
     text: str
-    metadata: dict | None = None # Optional field ( = None)
 
 
 # Ingest JSON endpoint

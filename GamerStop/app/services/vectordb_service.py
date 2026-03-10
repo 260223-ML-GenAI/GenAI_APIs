@@ -53,4 +53,14 @@ def ingest_json(collection_name:str, items:list[dict[str, Any]]):
 # TODO: ingest_text
 
 
-# TODO: search_collection (can be used for both of our collections!)
+# Vector DB Search (can be used for both of our collections!)
+def search_collection(collection_name:str, query:str, k:int=5):
+
+    # Get the collection from the vector store
+    collection = create_or_get_collection(collection_name)
+
+    # Perform the similarity search
+    # (This is a Retriver, we're using it to retrieve data for the LLM's response)
+    results = collection.similarity_search_with_score(query, k=k)
+
+    return results
