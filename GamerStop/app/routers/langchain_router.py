@@ -3,7 +3,7 @@ from langchain_community.document_loaders import TextLoader, CSVLoader
 from langchain_core.output_parsers import PydanticOutputParser
 from pydantic import BaseModel
 
-from app.services.langchain_service import get_basic_chain, get_sequential_chain, get_transform_chain
+from app.services.langchain_service import get_basic_chain, get_sequential_chain, get_transform_chain, get_memory_chain
 
 # Router setup
 router = APIRouter(
@@ -20,6 +20,7 @@ class ChatRequest(BaseModel):
 basic_chain = get_basic_chain()
 sequential_chain = get_sequential_chain()
 transform_chain = get_transform_chain()
+memory_chain = get_memory_chain()
 
 # General chat endpoint - no memory or fancy features
 @router.post("/chat")
@@ -116,3 +117,8 @@ async def get_game_recs(amount:int = 3, genre:str = "any"):
     # Here's the actual parsing into Pydantic
     parsed_output = parser.parse(output.content)
     return parsed_output
+
+# USING THE MEMORY CHAIN
+@router.post("/memory-chat")
+async def memory_chat(chat:ChatRequest):
+    return memory_chain.invoke(input=chat.input)

@@ -1,6 +1,6 @@
 from langchain_classic.chains.conversation.base import ConversationChain
 from langchain_classic.chains.transform import TransformChain
-from langchain_classic.memory import ConversationBufferWindowMemory
+from langchain_classic.memory import ConversationBufferWindowMemory, ConversationSummaryMemory
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
 
@@ -102,8 +102,11 @@ def get_transform_chain():
 def get_memory_chain():
 
     # First, we'll set up the memory object to store convo history
-    #CBWM remembers the last "k" interactions
-    memory = ConversationBufferWindowMemory(k=3)
+    # CBWM remembers the last "k" interactions
+    # memory = ConversationBufferWindowMemory(k=3)
+
+    # Let's try using Summary instead - remember the whole convo, but less detail
+    memory = ConversationSummaryMemory(llm=llm)
 
     # Prompt, mostly the same but one small addition - {history} variable
     # These older chains don't use LCEL and have opinionated variable names
