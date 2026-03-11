@@ -4,7 +4,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 
 from app.services.langchain_service import get_basic_chain
-from app.services.vectordb_service import ingest_json, search_collection
+from app.services.vectordb_service import ingest_json, search_collection, ingest_text
 
 router = APIRouter(
     prefix="/vectordb",
@@ -15,6 +15,11 @@ router = APIRouter(
 class IngestItem(BaseModel):
     id: str
     text: str
+
+# One more Pydantic Model for ingest text
+class IngestText(BaseModel):
+    document:str
+    game_title:str
 
 # Import our basic chain here
 basic_chain = get_basic_chain()
@@ -27,6 +32,20 @@ async def ingest_json_items(items:list[IngestItem]):
     ingested_items = ingest_json(
         collection_name="video_games",
         items=[item.model_dump() for item in items]
+    )
+
+    return {"ingested_items": ingested_items}
+
+# Ingest Text endpoint
+@router.post("/ingest-json")
+async def ingest_text_items(text:IngestText):
+
+    # Call the service method to ingest text
+    # NOTE: we're create a new collection here called critic_reviews
+    ingested_items = ingest_text(
+        collection_name="critic_reviews",
+        text=text.document,
+        game_title=text.game_title
     )
 
     return {"ingested_items": ingested_items}
