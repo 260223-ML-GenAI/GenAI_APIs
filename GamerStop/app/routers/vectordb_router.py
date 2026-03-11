@@ -37,7 +37,7 @@ async def ingest_json_items(items:list[IngestItem]):
     return {"ingested_items": ingested_items}
 
 # Ingest Text endpoint
-@router.post("/ingest-json")
+@router.post("/ingest-text")
 async def ingest_text_items(text:IngestText):
 
     # Call the service method to ingest text
@@ -64,6 +64,12 @@ async def search_games(query:str, k:int=5):
     )
 
     return results
+
+# Similarity search for critic reviews
+@router.post("/search-reviews")
+async def search_reviews(query:str, k:int=5):
+    pass
+
 
 # RAG endpoint - get the JSON search results (video_games collection)
 # And Augment the LLM's Generated response based on the Retrieved data

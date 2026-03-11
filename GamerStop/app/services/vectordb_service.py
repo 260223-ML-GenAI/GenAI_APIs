@@ -73,7 +73,7 @@ def ingest_text(collection_name:str, text:str, game_title:str):
     items = []
 
     # Generate a Document for each chunk, with a unique ID based on text content
-    for chunk in enumerate(chunks):
+    for i, chunk in enumerate(chunks):
 
         # Create a hash of the chunk content to ensure uniqueness
         chunk_hash = hashlib.md5(chunk.encode("utf-8")).hexdigest()[:8]
