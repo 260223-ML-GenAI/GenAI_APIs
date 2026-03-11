@@ -50,7 +50,8 @@ def ingest_json(collection_name:str, items:list[dict[str, Any]]):
     # Return the length of the ingested items just for visibility
     return len(items)
 
-# TODO: ingest_text
+
+# Ingest text into the DB (more involved, need to generate our own IDs and chunks)
 
 
 # Vector DB Search (can be used for both of our collections!)

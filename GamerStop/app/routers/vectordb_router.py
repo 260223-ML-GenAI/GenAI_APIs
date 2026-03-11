@@ -44,7 +44,6 @@ async def search_games(query:str, k:int=5):
         k=k
     )
 
-    # TODO: return this more cleanly (take out id, just return list of text)
     return results
 
 # RAG endpoint - get the JSON search results (video_games collection)
@@ -53,11 +52,11 @@ async def search_games(query:str, k:int=5):
 async def games_rag(query:str):
 
     # Get the search results from the vector DB
-    results = search_games(query=query, k=5)
+    results = search_collection(query=query, k=5, collection_name="video_games")
 
-    return basic_chain.invoke(input="""
-        Respond to the User's Query based on the following Search Results: 
-        
-        User's Query: {query}
-        Search Results: {results}
-        """)
+    return basic_chain.invoke(
+        input=f"Respond to the User's Query based on the following Search Results. "
+              f"ONLY use the information in the Search Results. "
+              f"Don't fall back to any outside information, say you don't know if you have to."
+                f"User's Query: {query}"
+                f"Search Results: {results}")
