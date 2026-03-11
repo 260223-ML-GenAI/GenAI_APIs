@@ -1,3 +1,4 @@
+import hashlib
 from typing import Any
 
 from langchain_chroma import Chroma
@@ -72,8 +73,12 @@ def ingest_text(collection_name:str, text:str, game_title:str):
     items = []
 
     # Generate a Document for each chunk, with a unique ID based on text content
-    for i, chunk in enumerate(chunks):
-        doc_id = f"{game_title}_{i}" # Unique ID for each chunk
+    for chunk in enumerate(chunks):
+
+        # Create a hash of the chunk content to ensure uniqueness
+        chunk_hash = hashlib.md5(chunk.encode("utf-8")).hexdigest()[:8]
+
+        doc_id = f"{game_title}_{chunk_hash}" # Unique ID for each chunk based on title and content
         items.append({
             "id": doc_id,
             "text": chunk,
