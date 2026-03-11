@@ -85,6 +85,11 @@ def ingest_text(collection_name:str, text:str, game_title:str):
             "metadata": {"game_title": game_title} # Optional metadata field
         })
 
+    # We have the list of items, and we can ingest it! Reuse the existing ingest_json function
+    # Returning it so we can see how many chunk we ingested
+    return ingest_json(collection_name, items)
+
+
 # Vector DB Search (can be used for both of our collections!)
 def search_collection(collection_name:str, query:str, k:int=5):
 
