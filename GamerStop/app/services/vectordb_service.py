@@ -91,13 +91,18 @@ def ingest_text(collection_name:str, text:str, game_title:str):
 
 
 # Vector DB Search (can be used for both of our collections!)
-def search_collection(collection_name:str, query:str, k:int=5):
+def search_collection(collection_name:str, query:str, k:int=5, game_title:str=None):
 
     # Get the collection from the vector store
     collection = create_or_get_collection(collection_name)
 
     # Perform the similarity search
     # (This is a Retriver, we're using it to retrieve data for the LLM's response)
-    results = collection.similarity_search_with_score(query, k=k)
+    results = (collection
+               .similarity_search_with_score(query,
+                                            k=k,
+                                            filter={"game_title": game_title} if game_title else None))
+
+    # NOTE: the filter is optional, and only comes into play if the user passes in a game title
 
     return results

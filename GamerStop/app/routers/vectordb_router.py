@@ -68,10 +68,18 @@ async def search_games(query:str, k:int=5):
 # Similarity search for critic reviews
 @router.post("/search-reviews")
 async def search_reviews(query:str, k:int=5):
-    pass
+
+    # Call search collection from the service, this time for the critic_reviews collection
+    results = search_collection(
+        collection_name="critic_reviews",
+        query=query,
+        k=k
+    )
+
+    return results
 
 
-# RAG endpoint - get the JSON search results (video_games collection)
+# RAG ENDPOINT - get the JSON search results (video_games collection)
 # And Augment the LLM's Generated response based on the Retrieved data
 @router.get("/games-rag")
 async def games_rag(query:str):
@@ -85,3 +93,31 @@ async def games_rag(query:str):
               f"Don't fall back to any outside information, say you don't know if you have to."
                 f"User's Query: {query}"
                 f"Search Results: {results}")
+
+# RAG ENDPOINT - same as above, but for critic reviews
+@router.get("/reviews-rag")
+async def reviews_rag(query:str):
+
+    # Get the search results from the vector DB
+    results = search_collection(query=query, k=9, collection_name="critic_reviews")
+
+    return basic_chain.invoke(
+        input=f"Respond to the User's Query based on the following Search Results. "
+              f"ONLY use the information in the Search Results. "
+              f"Don't fall back to any outside information, say you don't know if you have to."
+              f"User's Query: {query}"
+              f"Search Results: {results}")
+
+# RAG ENDPOINT WITH FILTER - same as above, but takes a game title to filter results
+@router.get("/reviews-rag-filtered")
+async def reviews_rag_filtered(query:str, game_title:str):
+
+    # Get the search results from the vector DB
+    results = search_collection(query=query, k=3, collection_name="critic_reviews", game_title=game_title)
+
+    return basic_chain.invoke(
+        input=f"Respond to the User's Query based on the following Search Results. "
+              f"ONLY use the information in the Search Results. "
+              f"Don't fall back to any outside information, say you don't know if you have to."
+              f"User's Query: {query}"
+              f"Search Results: {results}")
