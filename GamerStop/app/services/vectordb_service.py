@@ -3,6 +3,7 @@ from typing import Any
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from langchain_ollama import OllamaEmbeddings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 # This Service is full of functions that let our VectorDB work
 # Creating/Getting collections, ingesting data as vector embeddings, and searching the data
@@ -52,7 +53,32 @@ def ingest_json(collection_name:str, items:list[dict[str, Any]]):
 
 
 # Ingest text into the DB (more involved, need to generate our own IDs and chunks)
+def ingest_text(collection_name:str, text:str, game_title:str):
 
+    # Basic cleanup - strip whitespace
+    text = text.strip()
+
+    # CHUNK the raw text into smaller pieces (using a LangChain Transformer)
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=700, # How many chars should be in each chunk
+        chunk_overlap=100, # How many chars overlap between each chunk (captures context)
+        separators=["\n\n", "\n", " ", ""] # Preferred split points
+    )
+
+    # Get our chunks as a list[str] so we can iterate and reformat
+    chunks = splitter.split_text(text)
+
+    # An empty list (will hold the Documents we want to ingest)
+    items = []
+
+    # Generate a Document for each chunk, with a unique ID based on text content
+    for i, chunk in enumerate(chunks):
+        doc_id = f"{game_title}_{i}" # Unique ID for each chunk
+        items.append({
+            "id": doc_id,
+            "text": chunk,
+            "metadata": {"game_title": game_title} # Optional metadata field
+        })
 
 # Vector DB Search (can be used for both of our collections!)
 def search_collection(collection_name:str, query:str, k:int=5):
