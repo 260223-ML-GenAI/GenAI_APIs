@@ -1,6 +1,7 @@
 import hashlib
 from typing import Any
 
+import spacy
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from langchain_ollama import OllamaEmbeddings
@@ -97,7 +98,7 @@ def search_collection(collection_name:str, query:str, k:int=5, game_title:str=No
     collection = create_or_get_collection(collection_name)
 
     # Perform the similarity search
-    # (This is a Retriver, we're using it to retrieve data for the LLM's response)
+    # (This is a Retriever, we're using it to retrieve data for the LLM's response)
     results = (collection
                .similarity_search_with_score(query,
                                             k=k,
@@ -106,3 +107,20 @@ def search_collection(collection_name:str, query:str, k:int=5, game_title:str=No
     # NOTE: the filter is optional, and only comes into play if the user passes in a game title
 
     return results
+
+# Function that uses NER to identify and extract proper nouns (names, locations, etc)
+def extract_entities(text:str):
+
+    # Get the NER model from spacy
+    ner_model = spacy.load("en_core_web_sm")
+
+    # Process the text with the NER model
+    doc = ner_model(text)
+
+    # Create and return a list of entities found in the text
+    entities = [
+        {"text": entity.text, "label": entity.label_}
+        for entity in doc.ents # Pick out the entities from the processed doc
+    ]
+
+    return entities

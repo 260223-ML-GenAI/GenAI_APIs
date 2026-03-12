@@ -4,7 +4,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 
 from app.services.langchain_service import get_basic_chain
-from app.services.vectordb_service import ingest_json, search_collection, ingest_text
+from app.services.vectordb_service import ingest_json, search_collection, ingest_text, extract_entities
 
 router = APIRouter(
     prefix="/vectordb",
@@ -121,3 +121,22 @@ async def reviews_rag_filtered(query:str, game_title:str):
               f"Don't fall back to any outside information, say you don't know if you have to."
               f"User's Query: {query}"
               f"Search Results: {results}")
+
+# Endpoint that uses NER to extract entities from some text
+@router.post("/extract-entities")
+async def respond_with_entities(query:str, text:str):
+
+    # Call the service method that uses NER for extraction
+    entities = extract_entities(text)
+
+    # Temporary - just wanna see the data
+    # return {"entities": entities}
+
+    # Let's do some RAG, the LLM will take a query
+    # And answer it based on the NER entities that were extracted
+    return basic_chain.invoke(
+        input=f"Answer the User's Query based on the following extracted entities. "
+              f"ONLY use the information in the extracted entities. "
+              f"Don't fall back to any outside information, say you don't know if you have to."
+              f"User's Query: {query}"
+              f"Extracted Entities: {entities}")
