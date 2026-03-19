@@ -2,6 +2,8 @@ from typing import TypedDict
 
 from langchain_ollama import ChatOllama
 
+from app.services.vectordb_service import search_collection
+
 # This service will define the State, Nodes, and overall Graph
 # This is a GRAPH-BASED workflow with LangGraph (as opposed to chain-based with LangChain)
 
@@ -39,3 +41,43 @@ def route_node(state:GraphState) -> GraphState:
         return {"route": "reviews"}
 
     # TODO: general chat fallback if no keywords detected
+
+
+# Node that queries the video_games VectorDB collection
+def search_games_node(state:GraphState) -> GraphState:
+
+    # Get the query from state
+    query = state.get("query", "").lower()
+
+    # Similarity search, same function we made earlier
+    results = search_collection("video_games", query, k=5)
+
+    # Save the results in state!
+    return {"docs": results}
+
+
+# Node that queries the critic_reviews VectorDB collection
+def search_reviews_node(state:GraphState) -> GraphState:
+
+    # Get the query from state
+    query = state.get("query", "").lower()
+
+    # Similarity search, same function we made earlier
+    results = search_collection("critic_reviews", query, k=5)
+
+    # Save the results in state!
+    return {"docs": results}
+
+# Node that uses the VectorDB results to generate a RAG response
+
+
+# TODO: Node that handles general chat queries (no keywords detected)
+
+# ==================(End of Node Definitions)======================== #
+
+# Finally, we can define the overall structure of the Graph
+
+
+
+# Instantiate a single Graph object that we'll use in the router
+# (Singleton pattern, we only need one instance of the Graph at a time)
