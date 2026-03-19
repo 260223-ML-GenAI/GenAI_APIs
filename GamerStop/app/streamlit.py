@@ -2,47 +2,51 @@ import streamlit as st
 
 from services.langchain_service import get_basic_chain
 
-# Importing our basic chain
+# Import basic chain (no memory, but faster for this demo)
 basic_chain = get_basic_chain()
 
-# Basic header
-st.title("*sigh*... GamerStopGPT")
+# Now the actual UI ------------------------------------------
 
-# Sidebar with one (1) working button
-with st.sidebar:
-    st.header("About")
-    st.write("This is a Streamlit demo full of generic and easy to use components."
-             "Use Streamlit to make quick and easy frontends to interact with the API!")
-    if st.button("Clear Chat"):
-        st.session_state.messages = []
-        st.rerun()
+# Basic Header
+st.header("*sigh...* GamerStopGPT")
 
-# Initialize chat history. This isn't real memory, just for rendering in the UI
+# Storing chat history so we can display it
 if "messages" not in st.session_state:
-    st.session_state.messages = []
+    st.session_state.messages = [] # Empty list for now
 
-# Display existing chat history
-# Save (write) new messages to session_state.messages for display
+# The actual storage/display of messages in the session
+# (saves the messages to get rendered below)
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.write(message["content"])
 
-# Chat input
-if prompt := st.chat_input("Ask me about games..."):
+# Sidebar with an "About" section and a button to clear the UI
+with st.sidebar:
+    st.header("About GamerStopGPT")
+    st.write("This is a quick StreamLit chatbot demo with real LangChain integration for responses"
+             "StreamLit is great for making quick and easy UIs for LLMs and other stuff like dashboard.")
 
-    # Display user message
+    # Button that wipes chat transcript
+    if st.button("Clear Chat"): # "If this button is clicked, run this functionality"
+        st.session_state.messages = []
+        st.rerun()
+
+# User Input Box (btw prompt is a built-in variable from Streamlit)
+if prompt := st.chat_input("Ask me a question if you must..."):
+
+    # Save and display user message
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
-        st.write(prompt)
+        st.write(prompt) # write() is what actually displays the message
 
-    # Invoke basic chain and save the response (WITH A LOADING ANIMATION!)
+    # Invoke basic chain to respond to the user
+    # Notice the "thinking..." animation while we wait
     with st.spinner("Thinking..."):
-        response = basic_chain.invoke({"input": prompt})
+        response = basic_chain.invoke(input=prompt)
 
-    # Grabbing just the content for display, not the full object
+    # Save and display the LLM response
     response_text = response.content
 
-    # Display LLM response
-    st.session_state.messages.append({"role": "assistant", "content": response_text})
+    st.session_state.messages.append({"role":"assistant", "content":response_text})
     with st.chat_message("assistant"):
         st.write(response_text)

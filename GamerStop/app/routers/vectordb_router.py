@@ -136,7 +136,7 @@ async def respond_with_entities(query:str, text:str):
     # And answer it based on the NER entities that were extracted
     return basic_chain.invoke(
         input=f"Answer the User's Query based on the following extracted entities. "
-              f"ONLY use the information in the extracted entities. "
-              f"Don't fall back to any outside information, say you don't know if you have to."
+              f"ONLY use the provided information. "
+              f"Don't fall back to any outside information, try your best! "
               f"User's Query: {query}"
               f"Extracted Entities: {entities}")

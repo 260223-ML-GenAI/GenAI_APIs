@@ -117,10 +117,10 @@ def extract_entities(text:str):
     # Process the text with the NER model
     doc = ner_model(text)
 
-    # Create and return a list of entities found in the text
+    # Create and return a list of entities found in the text with a bit of context
     entities = [
-        {"text": entity.text, "label": entity.label_}
+        {"text": entity.text, "label": entity.label_, "context": entity.sent.text}
         for entity in doc.ents # Pick out the entities from the processed doc
-    ]
+    ][:10] # only the first 10 entities for brevity
 
     return entities
