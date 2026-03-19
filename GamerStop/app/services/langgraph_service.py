@@ -1,6 +1,8 @@
 from typing import TypedDict
 
 from langchain_ollama import ChatOllama
+from langgraph.graph import StateGraph
+from langgraph.graph.state import CompiledStateGraph
 
 from app.services.vectordb_service import search_collection
 
@@ -69,6 +71,24 @@ def search_reviews_node(state:GraphState) -> GraphState:
     return {"docs": results}
 
 # Node that uses the VectorDB results to generate a RAG response
+def rag_node(state:GraphState) -> GraphState:
+
+    # Ultimately, this node just invokes the LLM using retrieved data. We've done this
+
+    # Get the query and docs from state
+    query = state.get("query", "")
+    docs = state.get("docs", [])
+
+    # Basic prompt - kept it basic cuz this Service is already long
+    prompt=f"""Respond to the User's Query based on the provided Search Results - 
+           ONLY use the provided Search Results or say you don't know 
+            
+           User's Query: {query}
+           Search Results: {docs} """
+
+    # Invoke the LLM and save the answer in state
+    answer = llm.invoke(prompt)
+    return {"answer": answer.text}
 
 
 # TODO: Node that handles general chat queries (no keywords detected)
@@ -76,8 +96,42 @@ def search_reviews_node(state:GraphState) -> GraphState:
 # ==================(End of Node Definitions)======================== #
 
 # Finally, we can define the overall structure of the Graph
+# This function is what BUILDS OUR GRAPH. We define the Nodes and how they flow (Edges)
+def build_graph():
 
+    # First, define the graph builder which will be used throughout this method
+    builder = StateGraph(GraphState) # This is a "StateGraph". A Graph that uses state
+
+    # Register each Node - defining the name to call them by and the function to invoke
+    builder.add_node("route", route_node)
+    builder.add_node("search_games", search_games_node)
+    builder.add_node("search_reviews", search_reviews_node)
+    builder.add_node("rag", rag_node)
+
+    # Define the "entry node" - the node that starts the Graph by taking the user's query
+    builder.set_entry_point("route")
+
+    # Set up a "conditional edge" for condition node invocation
+    # Depending on the value of the "route" state field, call one of the nodes
+    builder.add_conditional_edges(
+        source="route", # After route node, run this conditional to determine the next node
+        path=lambda state: state.get("route", ""), # Determine the path based on the "route" state field
+        path_map={
+            "recs": "search_games", # If route is "recs", go to search_games_node
+            "reviews": "search_reviews"
+        }
+    )
+
+    # Adding generic edges - after either search node runs, invoke the RAG node
+    builder.add_edge("search_games", "rag")
+    builder.add_edge("search_reviews", "rag")
+
+    # Finally, we'll define the terminal nodes (where the graph can end) and return the built graph
+    builder.set_finish_point("rag") # After the RAG node runs, end the graph
+
+    return builder.compile()
 
 
 # Instantiate a single Graph object that we'll use in the router
 # (Singleton pattern, we only need one instance of the Graph at a time)
+graph = build_graph()
