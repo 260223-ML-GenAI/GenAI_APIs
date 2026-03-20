@@ -122,6 +122,7 @@ def build_graph():
     builder.add_node("search_games", search_games_node)
     builder.add_node("search_reviews", search_reviews_node)
     builder.add_node("rag", rag_node)
+    builder.add_node("general_chat", general_chat_node)
 
     # Define the "entry node" - the node that starts the Graph by taking the user's query
     builder.set_entry_point("route")
@@ -133,7 +134,8 @@ def build_graph():
         path=lambda state: state.get("route", ""), # Determine the path based on the "route" state field
         path_map={
             "recs": "search_games", # If route is "recs", go to search_games_node
-            "reviews": "search_reviews"
+            "reviews": "search_reviews",
+            "general_chat": "general_chat"
         }
     )
 
@@ -143,6 +145,7 @@ def build_graph():
 
     # Finally, we'll define the terminal nodes (where the graph can end) and return the built graph
     builder.set_finish_point("rag") # After the RAG node runs, end the graph
+    builder.set_finish_point("general_chat")
 
     return builder.compile()
 
