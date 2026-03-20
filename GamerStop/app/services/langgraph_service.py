@@ -37,13 +37,13 @@ def route_node(state:GraphState) -> GraphState:
     query = state.get("query", "").lower()
 
     # VERY simple keyword matching (FOR NOW) to determine the route
+    # Fallback to general chat node if no keywords match
     if any(word in query for word in ["recommend", "recs", "suggest"]):
         return {"route": "recs"}
     elif any(word in query for word in ["review", "critic", "critics"]):
         return {"route": "reviews"}
-
-    # TODO: general chat fallback if no keywords detected
-
+    else:
+        return {"route":"general_chat"}
 
 # Node that queries the video_games VectorDB collection
 def search_games_node(state:GraphState) -> GraphState:
@@ -91,7 +91,22 @@ def rag_node(state:GraphState) -> GraphState:
     return {"answer": answer.text}
 
 
-# TODO: Node that handles general chat queries (no keywords detected)
+# Node that handles general chat queries (no keywords detected)
+def general_chat_node(state:GraphState) -> GraphState:
+
+    # Get the query, define a prompt, and answer the question!
+    query = state.get("query", "")
+
+    prompt=(
+        f"""You are a general chat bot with a southern twang. 
+        You answer the user's general queries in a concise way. 
+
+        User Query: {query}
+        Your Answer: """
+    )
+
+    answer = llm.invoke(prompt)
+    return {"answer": answer.text}
 
 # ==================(End of Node Definitions)======================== #
 
