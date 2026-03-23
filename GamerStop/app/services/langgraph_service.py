@@ -1,7 +1,9 @@
-from typing import TypedDict
+from typing import TypedDict, Annotated
 
+from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
 from langchain_ollama import ChatOllama
-from langgraph.graph import StateGraph
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.graph import StateGraph, add_messages
 from langgraph.graph.state import CompiledStateGraph
 
 from app.services.vectordb_service import search_collection
@@ -22,7 +24,11 @@ class GraphState(TypedDict, total=False): # total=False makes the fields optiona
     answer:str # The LLM's answer to the query
     docs:list[dict] # Retrieved documents from a VectorDB search
     route:str # The "routing" decision we make. Determines which Node executes next
-    # TODO: memory manager
+
+    # State field to store message history
+    # This gets stored across graph invocations so the LLM remembers what we're talking about
+    # add_messages is a reducer that merges the user/AI interactions into one list
+    message_memory:Annotated[list[BaseMessage], add_messages]
 
 # ======================(Node Definitions)============================= #
 
@@ -106,7 +112,13 @@ def general_chat_node(state:GraphState) -> GraphState:
     )
 
     answer = llm.invoke(prompt)
-    return {"answer": answer.text}
+
+    # NOTE: we are using our memory manager here!
+    return {"answer": answer.text,
+            "message_memory": [
+                HumanMessage(content=query),
+                AIMessage(content=answer.text)
+            ]}
 
 # ==================(End of Node Definitions)======================== #
 
@@ -147,7 +159,8 @@ def build_graph():
     builder.set_finish_point("rag") # After the RAG node runs, end the graph
     builder.set_finish_point("general_chat")
 
-    return builder.compile()
+    # NOTE: Using an in-memory checkpointer here so we can persist message memory
+    return builder.compile(checkpointer=MemorySaver())
 
 
 # Instantiate a single Graph object that we'll use in the router

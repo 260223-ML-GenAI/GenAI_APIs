@@ -13,7 +13,7 @@ class ChatRequest(BaseModel):
     input: str
 
 
-# Notice how we just have a single endpoint
+# Notice how we just have a single endpoint for 3 potential outcomes
 # LangGraph is inherently multi-modal.
 # All that complicated Service logic cleans up our routers
 @router.post("/langgraph")
