@@ -20,10 +20,21 @@ class ChatRequest(BaseModel):
 async def langgraph_chat(chat:ChatRequest):
 
     # Get the result of the invocation
-    result = graph.invoke({"query":chat.input})
+    result = graph.invoke({"query":chat.input},
+                          config={
+                              "configurable":{"thread_id":"demo_thread"}
+                          })
+    # NOTE^: We're just hardcoding thread_id here... we don't have login functionality
+    # Normally, the user would log in, their ID would get saved somewhere (session?)
+        # Then that logged-in ID would be used to indicate the appropriate thread
 
     # Return the result and the route (just to see it)
     return {
         "response": result.get("answer"),
-        "route": result.get("route")
+        "route": result.get("route"),
+        "message_memory": result.get("message_memory")
     }
+
+@router.get("/")
+async def hello():
+    return {"message": "Hello from the LangGraph Router!"}

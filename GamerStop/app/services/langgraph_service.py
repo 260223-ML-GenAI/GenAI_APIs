@@ -106,6 +106,7 @@ def general_chat_node(state:GraphState) -> GraphState:
     prompt=(
         f"""You are a general chat bot with a southern twang. 
         You answer the user's general queries in a concise way. 
+        You have context from previous 3 interactions: {state.get("message_memory")[-6:]}
 
         User Query: {query}
         Your Answer: """
