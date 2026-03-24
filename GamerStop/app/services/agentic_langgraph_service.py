@@ -3,7 +3,7 @@ from typing import TypedDict, Annotated, Any
 from langchain_core.messages import BaseMessage, SystemMessage, HumanMessage
 from langchain_core.tools import tool
 from langchain_ollama import ChatOllama
-from langgraph.graph import add_messages
+from langgraph.graph import add_messages, StateGraph
 
 from app.services.vectordb_service import search_collection
 
@@ -112,9 +112,46 @@ def agentic_router_node(state:GraphState) -> GraphState:
             # Save the tool result in state - we can use this in later nodes (like a RAG node)
             state["docs"] = tool_result
 
-# RAG NODE - Pretty much the same as in the non-agentic LangGraph Service
+# RAG NODE - The same as in the non-agentic LangGraph Service
+def rag_node(state:GraphState) -> GraphState:
+
+    query = state.get("query", "")
+    docs = state.get("docs", [])
+
+    prompt=f"""Respond to the User's Query based on the provided Search Results - 
+           ONLY use the provided Search Results or say you don't know 
+            
+           User's Query: {query}
+           Search Results: {docs} """
+
+    # Invoke the LLM and save the answer in state
+    answer = llm.invoke(prompt)
+    return {"answer": answer.text}
 
 
 # ===================(GRAPH BUILDER)=================== #
 
 # Mostly the same, just a bit different node config and no routing.
+def build_agentic_graph():
+
+    # Define the Builder with State
+    builder = StateGraph(GraphState)
+
+    # Register the Nodes
+    builder.add_node("route", agentic_router_node)
+    builder.add_node("rag", rag_node)
+
+    # Define starting node
+    builder.set_entry_point("route")
+
+    # Define one edge - router node flows to rag node
+    builder.add_edge("route", "rag")
+
+    # Define terminal node
+    builder.set_finish_point("rag")
+
+    # Compile and build!
+    return builder.compile()
+
+# I like to build the graph here as a singleton. This is what we'll use in the endpoint
+agentic_graph = build_agentic_graph()
