@@ -1,6 +1,6 @@
 from typing import TypedDict, Annotated, Any
 
-from langchain_core.messages import BaseMessage
+from langchain_core.messages import BaseMessage, SystemMessage, HumanMessage
 from langchain_core.tools import tool
 from langchain_ollama import ChatOllama
 from langgraph.graph import add_messages
@@ -70,5 +70,51 @@ llm_with_tools = llm.bind_tools(TOOLS)
 # It's just that those 2 tools up there are no longer nodes.
 
 # Here's our AGENTIC BEHAVIOR - an AGENTIC ROUTER! (Instead of keyword matching)
+def agentic_router_node(state:GraphState) -> GraphState:
+
+    # Get the query from state
+    query = state.get("query", "").lower()
+
+    # Prompt the LLM to decide which tool to use based on the query (AGENCY!)
+    # Using a slightly different chat prompt style, just cuz I saw it
+    messages = [
+        SystemMessage(content=(
+            """
+            You are an internal decision making assistant for a user-facing AI chatbot.
+            
+            If the user is asking about video game recommendations or general info, 
+            use the "search_games" tool. 
+            
+            If the user is asking specifically about critic reviews or opinions, 
+            use the "search_reviews" tool. 
+            
+            You must always call at least one tool. DO NOT answer the user without tools.
+            Feel free to call multiple tools.  
+            """
+        )),
+        HumanMessage(content=query)
+    ]
+
+    # Call the LLM to decide which tool to use
+    agentic_response = llm_with_tools.invoke(messages)
+    # agentic_response contains the chosen tool(s).
+
+    # Invoke whatever tools were called and store the results in state
+    for tool_call in agentic_response.tool_calls:
+        tool_name = tool_call["name"]
+        tool_args = tool_call["args"]
+
+        # Look up the tool function from the TOOL_MAP and call it with the provided args
+        if tool_name in TOOL_MAP:
+            tool_function = TOOL_MAP[tool_name]
+            tool_result = tool_function(**tool_args) # Unpack the args dict into the function call
+
+            # Save the tool result in state - we can use this in later nodes (like a RAG node)
+            state["docs"] = tool_result
+
+# RAG NODE - Pretty much the same as in the non-agentic LangGraph Service
 
 
+# ===================(GRAPH BUILDER)=================== #
+
+# Mostly the same, just a bit different node config and no routing.
