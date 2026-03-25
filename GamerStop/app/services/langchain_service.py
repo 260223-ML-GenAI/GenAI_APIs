@@ -1,3 +1,5 @@
+import boto3
+from langchain_aws import ChatBedrock
 from langchain_classic.chains.conversation.base import ConversationChain
 from langchain_classic.chains.transform import TransformChain
 from langchain_classic.memory import ConversationBufferWindowMemory, ConversationSummaryMemory
@@ -8,9 +10,16 @@ from langchain_ollama import ChatOllama
 # A chain is a series of steps taken to communicate with an LLM
 
 # Define the LLM we're using (Llama3.2)
-llm = ChatOllama(
-    model="llama3.2:3b", # The name of the model we're using
-    temperature=0.5 # How "creative" the LLM can be. 0 - not at all. 1 - very creative.
+# llm = ChatOllama(
+#     model="llama3.2:3b", # The name of the model we're using
+#     temperature=0.5 # How "creative" the LLM can be. 0 - not at all. 1 - very creative.
+# )
+
+# TEMPORARY------ Using Amazon Bedrock's Nova model instead
+llm = ChatBedrock(
+    model_id="amazon.nova-micro-v1:0",
+    region_name="us-east-1",
+    temperature=0.5,
 )
 
 # Define the prompt (instructions for the LLM. How to respond, tone, restrictions, etc.)
