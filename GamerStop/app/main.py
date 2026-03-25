@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from app.routers import langchain_router, vectordb_router, langgraph_router
+from app.routers import langchain_router, vectordb_router, langgraph_router, TestItOutttt
 
 # Set up our FastAPI instance
 app = FastAPI()
@@ -9,3 +9,4 @@ app = FastAPI()
 app.include_router(langchain_router.router)
 app.include_router(vectordb_router.router)
 app.include_router(langgraph_router.router)
+app.include_router(TestItOutttt.router)

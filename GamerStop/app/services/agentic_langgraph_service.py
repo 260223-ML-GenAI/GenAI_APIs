@@ -99,18 +99,22 @@ def agentic_router_node(state:GraphState) -> GraphState:
     agentic_response = llm_with_tools.invoke(messages)
     # agentic_response contains the chosen tool(s).
 
+    print(agentic_response.tool_calls)
+
     # Invoke whatever tools were called and store the results in state
     for tool_call in agentic_response.tool_calls:
         tool_name = tool_call["name"]
-        tool_args = tool_call["args"]
 
         # Look up the tool function from the TOOL_MAP and call it with the provided args
         if tool_name in TOOL_MAP:
+
             tool_function = TOOL_MAP[tool_name]
-            tool_result = tool_function(**tool_args) # Unpack the args dict into the function call
+            tool_result = tool_function.invoke(query) # Unpack the args
+
+            print(tool_result)
 
             # Save the tool result in state - we can use this in later nodes (like a RAG node)
-            state["docs"] = tool_result
+            return {"docs":tool_result}
 
 # RAG NODE - The same as in the non-agentic LangGraph Service
 def rag_node(state:GraphState) -> GraphState:
@@ -119,7 +123,8 @@ def rag_node(state:GraphState) -> GraphState:
     docs = state.get("docs", [])
 
     prompt=f"""Respond to the User's Query based on the provided Search Results - 
-           ONLY use the provided Search Results or say you don't know 
+           ONLY use the provided Search Results 
+           or say you don't have any results if there are no provided Search Results. 
             
            User's Query: {query}
            Search Results: {docs} """

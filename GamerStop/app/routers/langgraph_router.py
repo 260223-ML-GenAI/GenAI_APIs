@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 
+from app.services.agentic_langgraph_service import agentic_graph
 from app.services.langgraph_service import graph
 
 router = APIRouter(
@@ -35,6 +36,14 @@ async def langgraph_chat(chat:ChatRequest):
         "message_memory": result.get("message_memory")
     }
 
-@router.get("/")
-async def hello():
-    return {"message": "Hello from the LangGraph Router!"}
+
+# New route for our agentic LangGraph, just to separate them
+# Pretty much the same as above, but we left out memory and we use the agentic graph
+@router.post("/agentic-langgraph")
+async def agentic_langgraph_chat(chat:ChatRequest):
+
+    result = agentic_graph.invoke({"query":chat.input})
+
+    return {
+        "response": result.get("answer")
+    }
