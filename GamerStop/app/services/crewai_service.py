@@ -1,4 +1,5 @@
-from crewai import Agent
+import boto3
+from crewai import Agent, Crew, Task
 from crewai.tools import tool
 
 from app.services.vectordb_service import search_collection
@@ -13,6 +14,10 @@ from app.services.vectordb_service import search_collection
     # Tasks - specific processes assigned to an Agent
     # Crew - the group of Agents we invoke to accomplish a goal
 
+# =========== Defining our Misc. Helper tool ==============
+
+# An instance of our Bedrock client
+client = boto3.client("bedrock-runtime", region_name="us-east-1")
 
 # =========== Defining Tools the Agents can use ===========
 
@@ -38,15 +43,33 @@ researcher = Agent(
          "Return the exact data that the tool provides, without adding to it. ",
     backstory="You are a gaming expert that specializes in data gathering. ",
     tools=[search_games_tool],
-    max_iter=1 # Only runs once
-    # TODO: point to the LLM we want to use (BEN: bedrock?)
+    max_iter=1, # Only runs once
+    llm=client # TODO: Find out if CrewAI can use Bedrock like this
 )
 
 # TODO: Agent 2 - The Analyst - takes raw data from Researcher and builds a response
 
 
-# ============ A function that defines Task order, and builds the crew =======
+# ============ A function that defines Task order, and builds the Crew =======
 
+def build_crew(query:str) -> Crew:
 
+    # Task for Agent 1 (Research)
+    research_task = Task(
+        description=f"""Search the video_games VectorDB Collection for information 
+        relevant to this User request: '{query}'. 
+        Return all relevant information you find.""",
+        expected_output="A String bulleted-list of info from the video_games collection.",
+        agent=researcher
+    )
+
+    # TODO: Task for Agent 2
+
+    # Build and Return the Crew!
+    return Crew(
+        agents=[researcher],
+        tasks=[research_task],
+        verbose=True # Prints lots of helpful info in the console during runtime
+    )
 
 
