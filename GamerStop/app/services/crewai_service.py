@@ -1,5 +1,5 @@
 import boto3
-from crewai import Agent, Crew, Task
+from crewai import Agent, Crew, Task, LLM
 from crewai.tools import tool
 
 from app.services.vectordb_service import search_collection
@@ -19,16 +19,32 @@ from app.services.vectordb_service import search_collection
 # An instance of our Bedrock client
 client = boto3.client("bedrock-runtime", region_name="us-east-1")
 
+# Define a CrewAI LLM object using our Bedrock nova model
+llm = LLM(
+    model="amazon.nova-micro-v1:0",
+    region_name="us-east-1",
+)
+
 # =========== Defining Tools the Agents can use ===========
 
 # A tool that does a similarity search on the video_games VectorDB collection
 @tool("search_games")
-def search_games_tool(query:str):
+def search_games_tool():
     """This tool performs a similarity search on the video_games VectorDB collection.
     This is primarily for video game recommendations and suggestions.
     The result of this tool is a list of relevant video games for RAG functionality"""
-    results = search_collection(collection_name="video_games", query=query, k=5)
-    return str(results) # I want it as a String for ease of use
+
+    # results = search_collection(collection_name="video_games", query=query, k=5)
+    # return str(results) # I want it as a String for ease of use
+
+    # TEMP: Just returning a string for now cuz Chroma machine broke!!
+    return """
+        Bioshock Finite: A first-person shooter with a gripping story and unique setting.
+        Working with Dad Simulator: Hold a flashlight while getting yelled at. You can't win.
+        Ultra Worm: A fun and chaotic multiplayer game where you play as a worm battling with friends.
+        Call of Duty Shoot a Man: War is fun! First person, action packed, and lots of shooting!
+        Super Backpack Bros: Explore the forest in this open world game... Don't stay out at night.
+        """
 
 # TODO: A tool that uses the similarity search data to generate a game recommendation
 
@@ -40,11 +56,11 @@ researcher = Agent(
     role="Game Research Specialist",
     goal="Based on the user's query, find relevant game info from VectorDB. "
          "Use only the search_games tool to do your research. "
-         "Return the exact data that the tool provides, without adding to it. ",
+         "Use NO other training data or external sources to find video games.",
     backstory="You are a gaming expert that specializes in data gathering. ",
     tools=[search_games_tool],
     max_iter=1, # Only runs once
-    llm=client # TODO: Find out if CrewAI can use Bedrock like this
+    llm=llm # The CrewAI LLM object we defined above
 )
 
 # TODO: Agent 2 - The Analyst - takes raw data from Researcher and builds a response
@@ -58,7 +74,7 @@ def build_crew(query:str) -> Crew:
     research_task = Task(
         description=f"""Search the video_games VectorDB Collection for information 
         relevant to this User request: '{query}'. 
-        Return all relevant information you find.""",
+        Only use the tools you have access to, and return all relevant information you find.""",
         expected_output="A String bulleted-list of info from the video_games collection.",
         agent=researcher
     )
