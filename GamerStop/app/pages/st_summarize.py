@@ -2,6 +2,11 @@ from io import StringIO
 
 import streamlit as st
 
+from app.services.langchain_service import get_basic_chain
+
+# Grab basic chain from service
+basic_chain = get_basic_chain()
+
 st.header("Summarize Text Demo")
 
 uploaded_file = st.file_uploader("Choose a TXT file:")
