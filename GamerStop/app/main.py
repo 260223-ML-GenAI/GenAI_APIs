@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from app.routers import langchain_router, vectordb_router, langgraph_router, TestItOutttt, bedrock_router, crewai_router
+from app.routers import langchain_router, vectordb_router, langgraph_router, bedrock_router, crewai_router
 
 # Set up our FastAPI instance
 app = FastAPI()
