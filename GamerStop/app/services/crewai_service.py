@@ -130,5 +130,3 @@ def build_crew(query:str) -> Crew:
         tasks=[research_task, analysis_task],
         verbose=True # Prints lots of helpful info in the console during runtime
     )
-
-

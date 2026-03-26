@@ -22,6 +22,11 @@ for message in st.session_state.messages:
 
 # Sidebar with an "About" section and a button to clear the UI
 with st.sidebar:
+
+    # Button that switches to the st_summarize.py file
+    if st.button("Summarize Text Demo"):
+        st.switch_page("pages/st_summarize.py")
+
     st.header("About GamerStopGPT")
     st.write("This is a quick StreamLit chatbot demo with real LangChain integration for responses"
              "StreamLit is great for making quick and easy UIs for LLMs and other stuff like dashboard.")
